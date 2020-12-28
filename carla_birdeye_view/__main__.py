@@ -12,8 +12,8 @@ from carla_birdeye_view import (
 )
 from carla_birdeye_view.mask import PixelDimensions
 
-STUCK_SPEED_THRESHOLD_IN_KMH = 3
-MAX_STUCK_FRAMES = 30
+# STUCK_SPEED_THRESHOLD_IN_KMH = 3
+# MAX_STUCK_FRAMES = 30
 
 
 def get_speed(actor: carla.Actor) -> float:
@@ -52,29 +52,33 @@ def main():
     )
     stuck_frames_count = 0
 
-    while True:
-        # world.tick()
-        birdview: BirdView = birdview_producer.produce(agent_vehicle=agent)
-        bgr = cv.cvtColor(BirdViewProducer.as_rgb(birdview), cv.COLOR_BGR2RGB)
-        # NOTE imshow requires BGR color model
-        cv.imshow("BirdView RGB", bgr)
+    try:
+        while True:
+            # world.tick()
+            birdview: BirdView = birdview_producer.produce(agent_vehicle=agent)
+            bgr = cv.cvtColor(BirdViewProducer.as_rgb(birdview), cv.COLOR_BGR2RGB)
+            # NOTE imshow requires BGR color model
+            cv.imshow("BirdView RGB", bgr)
 
-        # Teleport when stuck for too long
-        if get_speed(agent) < STUCK_SPEED_THRESHOLD_IN_KMH:
-            stuck_frames_count += 1
-        else:
-            stuck_frames_count = 0
+            # # Teleport when stuck for too long
+            # if get_speed(agent) < STUCK_SPEED_THRESHOLD_IN_KMH:
+            #     stuck_frames_count += 1
+            # else:
+            #     stuck_frames_count = 0
 
-        if stuck_frames_count == MAX_STUCK_FRAMES:
-            agent.set_autopilot(False)
-            agent.set_transform(random.choice(spawn_points))
-            agent.set_autopilot(True)
+            # if stuck_frames_count == MAX_STUCK_FRAMES:
+            #     agent.set_autopilot(False)
+            #     agent.set_transform(random.choice(spawn_points))
+            #     agent.set_autopilot(True)
 
-        # Play next frames without having to wait for the key
-        key = cv.waitKey(10) & 0xFF
-        if key == 27:  # ESC
-            break
-    cv.destroyAllWindows()
+            # Play next frames without having to wait for the key
+            key = cv.waitKey(10) & 0xFF
+            if key == 27:  # ESC
+                break
+    finally:
+        if agent is not None:
+            agent.destroy()   
+        cv.destroyAllWindows()
 
 
 if __name__ == "__main__":
